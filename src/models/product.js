@@ -1,0 +1,24 @@
+const { number } = require('joi');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+
+//Creating a new Product Schema
+const ProductSchema = new Schema({
+  
+  category: { type: Schema.Types.ObjectId, ref: 'Category'},
+  owner:  { type: Schema.Types.ObjectId, ref: 'User'},
+  reviews: [{ type: Schema.Types.ObjectId, ref: 'Review'}],
+  image: String,
+  title: String,
+  description: String,
+  price: Number,
+  created: { type: Date, default: Date.now },
+  sold: Number,
+  amount: Number
+}, {
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true }
+});
+let Model =  mongoose.model('Product', ProductSchema);
+module.exports = Model
