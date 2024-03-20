@@ -14,12 +14,7 @@ const generateTokens = async (user) => {
             { expiresIn: "30d" }
         );
 
-        const userToken = await UserToken.findOne({ userId: user._id });
-        if (userToken) {
-            await UserToken.remove({
-                userId: user._id
-            });
-        }
+        const userToken = await UserToken.deleteOne({ userId: user._id });
         let newUserToken = new UserToken();
         newUserToken.userId = user._id;
         newUserToken.token = refreshToken;

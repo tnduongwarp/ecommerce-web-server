@@ -6,4 +6,5 @@ const router = express.Router();
 router.post('/',[authorization.verifyToken, authorization.isAdmin],userCtl.insertOne);
 router.get('/', [authorization.verifyToken, authorization.isAdmin], userCtl.getAllUser);
 router.post('/delete/:id',[authorization.verifyToken, authorization.isAdmin], userCtl.deleteUser )
+router.post('/:id',[authorization.verifyToken], userCtl.updateById)
 export default router;

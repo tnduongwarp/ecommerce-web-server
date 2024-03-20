@@ -8,9 +8,11 @@ const OrderSchema = new Schema({
   owner: { type: Schema.Types.ObjectId, ref: 'User'},
   totalPrice: { type: Number, default: 0},
   products: [{
-    product: { type: Schema.Types.ObjectId, ref: 'Product'},
+    productId: { type: Schema.Types.ObjectId, ref: 'Product'},
     quantity: { type: Number, default: 1 }
-  }]
+  }],
+  created: {type: Date, default: Date.now()},
+  status: {type: String, default: 'created'}
 });
 
 

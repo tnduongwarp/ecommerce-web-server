@@ -5,6 +5,7 @@ const config = process.env;
 
 const verifyToken = (req, res, next) => {
     let token = req.header('authorization')?.split(' ')[1];
+    console.log('token', token)
     if (!token) {
         return res.status(401).json({
             error: true,

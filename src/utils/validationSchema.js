@@ -6,7 +6,8 @@ const signUpBodyValidation = (body) => {
         lastname: Joi.string().required(),
         email: Joi.string().email().required(),
         password: Joi.string().required(),
-        role: Joi.string().required()
+        role: Joi.string().required(),
+        isSeller: Joi.boolean().required(),
     });
     return schema.validate(body);
 };
@@ -26,8 +27,42 @@ const refreshTokenBodyValidation = (body) => {
     return schema.validate(body);
 };
 
+const productBodyValidation = (body) => {
+    const schema = Joi.object({
+        category: Joi.string().required(),
+        owner: Joi.string().required(),
+        image: Joi.string().required(),
+        title: Joi.string().required(),
+        description: Joi.string().required(),
+        price: Joi.number().required(),
+        amount: Joi.number().required()
+    });
+    return schema.validate(body);
+}
+const reviewBodyValidation = (body) => {
+    const schema = Joi.object({
+        owner: Joi.string().required(),
+        productId: Joi.string().required(),
+        title: Joi.string().required(),
+        description: Joi.string().required(),
+        rating: Joi.number().required(),
+    });
+    return schema.validate(body);
+}
+const addToCartBodyValidation = (body) => {
+    const schema = Joi.object({
+        owner: Joi.string().required(),
+        productId: Joi.string().required(),
+        quantity: Joi.number().required(),
+    });
+    return schema.validate(body);
+}
+
 export {
     signUpBodyValidation,
     logInBodyValidation,
     refreshTokenBodyValidation,
+    productBodyValidation,
+    reviewBodyValidation,
+    addToCartBodyValidation
 };

@@ -12,7 +12,7 @@ const generateChangePwToken = async (email) => {
         const user = await User.findOne({email: email});
         const userToken = await UserToken.findOne({userId: user._id });
         if (userToken) {
-            await UserToken.remove({
+            await UserToken.deleteOne({
                     userId: user._id
             });
         }

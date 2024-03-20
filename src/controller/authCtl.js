@@ -11,6 +11,7 @@ import { OAuth2Client } from 'google-auth-library';
 import dotenv from 'dotenv';
 import sendEmail from '../utils/sendOTPEmail.js';
 import generateChangePwToken from '../utils/generateChangePwToken.js';
+import otpGenerator from 'otp-generator';
 dotenv.config();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const authCtl = {
@@ -65,6 +66,7 @@ const authCtl = {
             newUser.password = bcrypt.hashSync(req.body.password, salt);
             newUser.email = req.body.email;
             newUser.role = req.body.role;
+            newUser.isSeller = req.body.isSeller;
             await newUser.save()
 
             res
@@ -148,16 +150,22 @@ const authCtl = {
         if(!recipient_email) res.status(400).json({error: true, message: "email is require!"});
         const user = await User.findOne({email: recipient_email});
         if(!user) res.status(400).json({error: true, message:"email is incorrect!"})
-        else
-        sendEmail(req.body)
-          .then((response) => res.status(200).json({
-            error: false,
-            message: response.message
-          }))
-          .catch((error) => res.status(500).send({
-            error: true,
-            message: error.message
-          }));
+        else{
+            const otp = otpGenerator.generate(6,{ upperCaseAlphabets: false, specialChars: false })
+            sendEmail({recipient_email: req.body.recipient_email, OTP: otp})
+            .then((response) => res.status(200).json({
+              error: false,
+              otp: otp,
+              userId: user._id,
+              length: 6,
+              message: response.message
+            }))
+            .catch((error) => res.status(500).send({
+              error: true,
+              message: error.message
+            }));
+        }
+        
     },
 
     sendChangePwToken: async (req,res) => {

@@ -1,7 +1,5 @@
 import User from '../models/user.js';
-import UserToken from '../models/user_token.js'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 dotenv.config()
 const privateKey = process.env.TOKEN_KEY;
@@ -34,30 +32,23 @@ let userCtl = {
     } ,
     changePassword : async (req, res) => {
         try{
-            const {token, newPassword} = req.body;
-            const userToken = await UserToken.findOne({token: token});
-            if(!userToken) res.status(400).json({error: true, message: 'forbiden'});
+            const {id, newPassword} = req.body;
+            const user = await User.findOne({_id: id});
+            if(!user) res.status(400).json({error: true, message: 'User Not Found!'});
             else{
-                const decodeToken = jwt.verify(token, privateKey);
-                if(decodeToken){
-                    // let user = await db.User.update(
-                    //     {password: bcrypt.hashSync(newPassword,salt)},
-                    //     { where: {id: userToken.userId}}
-                    // )
-                    let user =await User.findOne({_id: userToken.userId});
-                    user.password = bcrypt.hashSync(newPassword,salt);
-                    await user.save();
-                    res.status(200).json({
-                        message: 'success',
-                        data:user
+                let user =await User.findOne({_id: id});
+                user.password = bcrypt.hashSync(newPassword,salt);
+                await user.save();
+                res.status(200).json({
+                    message: 'success',
+                    data:user
                 })
-                }
             }
             
         }catch(err){
-            res.status(402).json({
+            res.status(500).json({
                 error: true,
-                message: 'token is expired'
+                message: 'Internal Server Error'
             })
         }
         
@@ -82,7 +73,7 @@ let userCtl = {
     deleteUser : async(req,res) => {
         try {
             const id = req.params.id;
-            await User.remove({ id: id});
+            await User.deleteOne({ id: id});
             res.status(200).json({
                 error: false,
                 message: 'Delete successfully'
@@ -94,7 +85,32 @@ let userCtl = {
             })
         }
     }
-    
+    ,
+    updateById: async (req, res) => {
+        try {
+            let {id} = req.params;
+            let user = await User.findOne({_id: id});
+            if(!user) res.status(400).json({
+                error: true,
+                message: 'User not found'
+            });
+            const params = req.body;
+            for(let key of Object.keys(params)){
+                user[key] = params[key];
+            }
+            let updatedUser = await user.save();
+            res.status(200).json({
+                error: false,
+                data: updatedUser
+            })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({
+                error: true,
+                message: 'Internal server error'
+            })
+        }
+    }
     
 }
 export default userCtl;
