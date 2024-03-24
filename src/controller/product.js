@@ -155,7 +155,7 @@ const productCtl = {
                     owner: req.body.owner,
                     products: [{productId: req.body.productId, quantity: req.body.quantity}]
                 })
-                return res.status(200).json({ error: false, message: 'Thêm sản phẩm vào giỏ hàng thành công', dât: d});
+                return res.status(200).json({ error: false, message: 'Thêm sản phẩm vào giỏ hàng thành công', data: data});
             }
             let position = -1;
             for(let i = 0; i < cart.products.length; i++){

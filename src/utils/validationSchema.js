@@ -57,6 +57,16 @@ const addToCartBodyValidation = (body) => {
     });
     return schema.validate(body);
 }
+const createOrderBodyValidation = (body) => {
+    const schema = Joi.object({
+        owner: Joi.string().required(),
+        address: Joi.string().required(),
+        totalPrice: Joi.number().required(),
+        products: Joi.array().min(1).required(),
+        paymentType: Joi.number().required()
+    });
+    return schema.validate(body);
+}
 
 export {
     signUpBodyValidation,
@@ -64,5 +74,6 @@ export {
     refreshTokenBodyValidation,
     productBodyValidation,
     reviewBodyValidation,
-    addToCartBodyValidation
+    addToCartBodyValidation,
+    createOrderBodyValidation
 };

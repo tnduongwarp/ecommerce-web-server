@@ -5,7 +5,7 @@ import forgotPassWord from './forgot-pw.js';
 import category from './category.js';
 import product from './product.js';
 import cart from './cart.js';
-import cartCtl from '../controller/cart.js';
+import order from './order.js'
 export default function route(app){
     app.use(function(req, res, next) {
         res.header(
@@ -21,4 +21,5 @@ export default function route(app){
       app.use('/category', category);
       app.use('/product', product);
       app.use('/cart', cart);
+      app.use('/order', order);
 }

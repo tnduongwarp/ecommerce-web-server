@@ -110,6 +110,35 @@ let userCtl = {
                 message: 'Internal server error'
             })
         }
+    },
+
+    uploadAvatar: async (req, res) => {
+        try {
+            const {id} = req.params;
+            const fileName = req.file.originalname;
+            if(!fileName) return res.statsu(400).json({
+                error: true,
+                message: 'Error'
+            });
+            const picture = `/assets/img/${fileName}`;
+            let user = await User.findOne({_id: id});
+            if(!user) res.status(400).json({
+                error: true,
+                message: 'User not found'
+            });
+            user.picture = picture;
+            await user.save()
+            res.status(200).json({
+                error: false,
+                data: user
+            })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({
+                error: true,
+                message: 'Internal server error'
+            })
+        }
     }
     
 }
