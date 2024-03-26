@@ -48,11 +48,10 @@ const cartCtrl = {
 
     removeItem: async (req, res) => {
         try {
-            let {userId, productId} = req.body;
+            let {userId, productIds} = req.body;
             const cart = await Cart.findOne({owner: userId});
-            console.log(cart)
             if(cart){
-                cart.products = cart._doc.products.filter(item => (item.productId.toString() !== productId));
+                cart.products = cart._doc.products.filter(item => (!productIds.includes(item.productId.toString())));
                 let data = await cart.save();
                 res.status(200).json({
                 error: false,
@@ -66,6 +65,6 @@ const cartCtrl = {
                 message: 'error'
             })
         }
-    }
+    },
 }
 export default cartCtrl;
