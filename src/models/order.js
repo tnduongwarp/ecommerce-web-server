@@ -12,7 +12,8 @@ const OrderSchema = new Schema({
   }],
   paymentType: { type: Number},
   created: {type: Date, default: Date.now()},
-  status: {type: String, default: 'created'}
+  status: {type: String, default: 'created'},
+  statusHistory: { type: Array, default: []}
 });
 
 

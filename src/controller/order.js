@@ -1,6 +1,13 @@
 import Order from '../models/order';
 import Product from '../models/product';
+import User from '../models/user';
+
 import { createOrderBodyValidation } from '../utils/validationSchema';
+const OrderStatus = {
+    Created: 'created',
+    InProgress: 'inProgress',
+    Completed: 'completed'
+}
 const orderCtl = {
     createOrder : async (req, res) => {
         try {
@@ -34,16 +41,68 @@ const orderCtl = {
 
     getListOrderForUser: async (req, res) => {
         try {
-            const  userId = req.params;
-            const {filter} = req.query;
+            const  userId = req.params.userId;
+            const q = req.query;
             let condition = {};
             condition['owner'] = userId;
-            for(let key of Object.key(filter)){
-                condition[key] = filter[key];
-            }let data = await Order.find(condition);
+            if(q)
+                for(let key of Object.keys(q)){
+                    if(key === 'tab'){
+                        if(q['tab'] === 'all') continue;
+                        condition['status'] = q['tab']
+                    }
+                    else condition[key] = q[key];
+                }
+            let data = await Order.find(condition);
+            const productIds = [];
+            for(let item of data){
+                item.products.forEach(p => {
+                    if(!productIds.includes(p.productId.toString())) productIds.push(p.productId.toString())
+                })
+            }
+            const products = await Product.find({_id: {$in: productIds}});
+            let userIds = products.map(it => it.owner);
+            const users = await User.find({_id: {$in: userIds}});
+            let orderItems = data.map(it => {
+                return JSON.parse(JSON.stringify(it))
+            });
+            for(let orderItem of orderItems){
+                orderItem.products = orderItem.products.map(item => {
+                    let product = products.filter(p => {
+                        return p._id.toString() === item.productId.toString()
+                    })[0];
+                    let copyProduct = {...product._doc};
+                    copyProduct.image = copyProduct.image.split(',')[0];
+                    copyProduct.owner = users.filter(it => (it._id.toString() === copyProduct.owner.toString()))[0];
+                    return {
+                        product: copyProduct,
+                        quantity: item.quantity
+                    }
+                })
+            };
+            let ret = {
+                orderItems
+            };
+            let promises = [];
+            promises.push(Order.countDocuments({owner: userId}));
+            for(let key of Object.keys(OrderStatus)){
+                promises.push(Order.countDocuments({owner: userId, status: OrderStatus[key]}));
+            }
+            await Promise.all(promises).then(
+                values => {
+                    let sumary = {};
+                    sumary['all'] = values[0];
+                    sumary['created'] = values[1];
+                    sumary['inProgress'] = values[2];
+                    sumary['completed'] = values[3];
+                    console.log(sumary)
+                    ret['sumary'] = sumary;
+                }
+            )
+            console.log(ret)
             res.status(200).json({
                 error: false,
-                data: data
+                data: ret
             })
         } catch ({error}) {
             console.log(error)
