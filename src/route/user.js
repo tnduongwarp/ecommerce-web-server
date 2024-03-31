@@ -8,5 +8,6 @@ router.post('/',[authorization.verifyToken, authorization.isAdmin],userCtl.inser
 router.get('/', [authorization.verifyToken, authorization.isAdmin], userCtl.getAllUser);
 router.post('/delete/:id',[authorization.verifyToken, authorization.isAdmin], userCtl.deleteUser )
 router.post('/:id',[authorization.verifyToken], userCtl.updateById);
-router.post('/:id/upload-avatar', [authorization.verifyToken,upload.single('file')], userCtl.uploadAvatar)
+router.post('/:id/upload-avatar', [authorization.verifyToken,upload.single('file')], userCtl.uploadAvatar);
+router.get('/shop_info/:id',[authorization.verifyToken], userCtl.getShopInfo)
 export default router;

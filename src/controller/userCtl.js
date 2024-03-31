@@ -1,4 +1,6 @@
 import User from '../models/user.js';
+import Product from '../models/product.js';
+import Review from '../models/review.js'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -139,6 +141,36 @@ let userCtl = {
                 message: 'Internal server error'
             })
         }
+    },
+
+    getShopInfo: async (req, res) =>{
+       try {
+        const {id} = req.params;
+        console.log(id)
+        const user = await User.findOne({_id: id});
+        const products = await Product.find({owner: id});
+        const ret = {};
+        ret.shop = user;
+        ret.totalProduct = products.length;
+        let productIds = products.map(p => p._id);
+        const reviews = await Review.find({productId: {$in: productIds}});
+        let totalRate = 0;
+        reviews.forEach(rv => {
+            totalRate += rv.rating;
+        })
+        ret.totalReview = reviews.length;
+        ret.avgRate = totalRate/reviews.length;
+        res.status(200).json({
+            error: false,
+            data: ret
+        })
+       } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error: true,
+            message: 'Internal Server Error'
+        })
+       }
     }
     
 }

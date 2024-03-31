@@ -4,14 +4,16 @@ import Category from '../models/category';
 import Review from '../models/review';
 import User from '../models/user';
 import Cart from '../models/cart';
+import { UserRefreshClient } from 'google-auth-library';
 const productCtl = {
     getList: async (req, res) => {
         try {
             let filter = req.query;
-            console.log(filter);
             let skip = Number(filter?.skip) || 0;
             let limit = Number(filter?.limit) || 0;
+            let owner = filter?.owner;
             let condition = {};
+            if(owner) condition['owner'] = owner;
             if(filter?.product){
                 if(filter.product !== 'all') {
                     let c = await Category.findOne({url: filter.product});
@@ -37,9 +39,17 @@ const productCtl = {
                 let image = data.image.split(',');
                 return {...data._doc, imageArray: image}
             })
+            const ret = listData.map(it => {
+                return JSON.parse(JSON.stringify(it));
+            })
+            let userIds = ret.map(it => it.owner);
+            const users = await User.find({_id: {$in: userIds}});
+            ret.forEach(it => {
+                it.owner = users.find(user => (user._id.toString() === it.owner.toString()))
+            })
             res.status(200).json({
                 error: false,
-                list_data: listData,
+                list_data: ret,
                 skip: skip,
                 limit: limit,
                 total: total
