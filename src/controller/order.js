@@ -111,6 +111,33 @@ const orderCtl = {
                 message: 'error'
             })
         }
+    },
+    getOrderDetail: async (req, res) => {
+       try {
+        const {id} = req.params;
+        const order = await Order.findOne({_id: id});
+        let productIds = order.products.map(it => it.productId);
+        let products = await Product.find({_id: { $in: productIds}});
+       
+        let orderDetail = {...order._doc};
+        console.log(orderDetail)
+        orderDetail.products = orderDetail.products.map(item => {
+            return{
+                product : products.find(p => p._id.toString() === item.productId.toString()),
+                quantity: item.quantity
+            }
+        })
+        res.status(200).json({
+            error: false,
+            data: orderDetail
+        })
+       } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error: true,
+            message: 'error'
+        })
+       }
     }
 }
 export default orderCtl;
