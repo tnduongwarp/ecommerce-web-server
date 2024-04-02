@@ -13,7 +13,21 @@ const OrderSchema = new Schema({
   paymentType: { type: Number},
   created: {type: Date, default: Date.now()},
   status: {type: String, default: 'created'},
-  statusHistory: { type: Array, default: []}
+  statusHistory: { type: [
+    {
+      status: { type: String},
+      when: { type: Date}
+    }
+  ], default: [{
+    status:'created',
+    when: Date.now()
+  }]},
+  transitHistory: {
+    type: [{
+      status: String,
+      when: { type: Date, default: Date.now()}
+    }]
+  }
 });
 
 

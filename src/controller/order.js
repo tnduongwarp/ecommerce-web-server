@@ -14,17 +14,24 @@ const orderCtl = {
             const {error} =  createOrderBodyValidation(req.body);
             if(error)
                 return res.status(400).json({ error: true, message: error.details[0].message });
-                let data = await Order.create(req.body);
-                const { products } = req.body;
-                let promises = [];
-                for(let item of products){
-                    let product = await Product.findById(item.productId);
-                    if(product){
-                        let newSold = product.sold + item.quantity;
-                        let promise = Product.findByIdAndUpdate(product._id, { sold: newSold });
-                        promises.push(promise);
-                    }
+            const order = req.body;
+            let transitHistory = [];
+            transitHistory.push({
+                status:'Đơn hàng đã được đặt thành công',
+                when: new Date()
+            })
+            order.transitHistory = transitHistory;
+            let data = await Order.create(order);
+            const { products } = req.body;
+            let promises = [];
+            for(let item of products){
+                let product = await Product.findById(item.productId);
+                if(product){
+                    let newSold = product.sold + item.quantity;
+                    let promise = Product.findByIdAndUpdate(product._id, { sold: newSold });
+                    promises.push(promise);
                 }
+            }
                 await Promise.all(promises).catch(err => console.log(err))
                 res.status(200).json({
                     error: false,
