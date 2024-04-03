@@ -42,10 +42,10 @@ const productBodyValidation = (body) => {
 const reviewBodyValidation = (body) => {
     const schema = Joi.object({
         owner: Joi.string().required(),
-        productId: Joi.string().required(),
-        title: Joi.string().required(),
+        productIds: Joi.array().required(),
         description: Joi.string().required(),
         rating: Joi.number().required(),
+        orderId: Joi.string().required()
     });
     return schema.validate(body);
 }

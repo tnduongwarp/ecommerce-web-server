@@ -123,14 +123,19 @@ const orderCtl = {
        try {
         const {id} = req.params;
         const order = await Order.findOne({_id: id});
+        let orderDetail = {...order._doc};
         let productIds = order.products.map(it => it.productId);
         let products = await Product.find({_id: { $in: productIds}});
-       
-        let orderDetail = {...order._doc};
-        console.log(orderDetail)
+        let userIds = products.map(it => it.owner);
+        userIds.push(orderDetail.owner)
+        let users = await User.find({_id : { $in: userIds}});
+        orderDetail.owner = users.find(it => it._id.toString() === orderDetail.owner.toString())
         orderDetail.products = orderDetail.products.map(item => {
+            let product = products.find(p => p._id.toString() === item.productId.toString())
+            let copy = {...product._doc};
+            copy.owner = users.find(it => it._id.toString() === copy.owner.toString())
             return{
-                product : products.find(p => p._id.toString() === item.productId.toString()),
+                product : copy,
                 quantity: item.quantity
             }
         })

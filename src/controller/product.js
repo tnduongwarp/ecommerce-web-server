@@ -5,6 +5,8 @@ import Review from '../models/review';
 import User from '../models/user';
 import Cart from '../models/cart';
 import { UserRefreshClient } from 'google-auth-library';
+import Order from '../models/order';
+import { AppConst } from '../AppConstant';
 const productCtl = {
     getList: async (req, res) => {
         try {
@@ -139,10 +141,32 @@ const productCtl = {
     },
     addReview: async(req, res) => {
         try {
-            let {id} = req.params;
             const {error} = reviewBodyValidation(req.body);
             if(error)  return res.status(400).json({ error: true, message: error.details[0].message });
-            let data = await Review.create(req.body);
+            const order =await Order.findById(req.body.orderId);
+            if(!order) return res.status(400).json({
+                error: true,
+                message:'Đơn hàng không tồn tại'
+            });
+            let {productIds} = req.body;
+            let promises = []
+            for(let id of productIds){
+                let review = {...req.body};
+                delete review.productIds;
+                review.productId = id;
+                promises.push( Review.create(review))
+            }
+            await Promise.all(promises);
+            let sh = order.statusHistory.find(it => it.status === AppConst.ORDERSTATUS.completed);
+            if(!sh){
+                order.statusHistory.push({status: AppConst.ORDERSTATUS.completed, when: new Date()});
+                order.status = AppConst.ORDERSTATUS.completed
+            }
+            let th = order.transitHistory.find(it => it.status === 'Đơn hàng đã hoàn thành');
+            if(!th){
+                order.transitHistory.push({status: 'Đơn hàng đã hoàn thành', when: new Date()});
+            }
+            let data = await order.save();
             res.status(200).json({
                 error: false,
                 insert: data

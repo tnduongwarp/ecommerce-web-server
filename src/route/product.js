@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/',productCtl.insertOne);
 router.get('/', productCtl.getList);
 router.get('/:id',[authorization.verifyToken], productCtl.getById);
-router.post('/:id/add-review', productCtl.addReview);
-router.post('/add-to-cart', productCtl.addToCart)
+router.post('/add-review',[authorization.verifyToken], productCtl.addReview);
+router.post('/add-to-cart',[authorization.verifyToken], productCtl.addToCart)
 // router.post('/delete/:id',[authorization.verifyToken, authorization.isAdmin], userCtl.deleteUser )
 export default router;
