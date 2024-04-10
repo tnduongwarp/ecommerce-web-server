@@ -7,6 +7,11 @@ import product from './product.js';
 import cart from './cart.js';
 import order from './order.js';
 import messsage from './message.js'
+import seller from'./seller.js';
+import upload from '../utils/saveFile.js';
+import saveFile from '../service/saveFile.js';
+import authorization from '../utils/authorize.js';
+
 export default function route(app){
     app.use(function(req, res, next) {
         res.header(
@@ -23,5 +28,7 @@ export default function route(app){
       app.use('/product', product);
       app.use('/cart', cart);
       app.use('/order', order);
-      app.use('/chat', messsage)
+      app.use('/chat', messsage);
+      app.use('/seller/', seller);
+      app.post('/upload_image',[authorization.verifyToken, upload.array('upload_files')], saveFile)
 }

@@ -16,31 +16,32 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:4200'],
+      origin: ['http://localhost:3000', 'http://localhost:4200','http://localhost:4001'],
       methods: ['GET', 'POST'],
     },
   });
 io.on('connection', (socket) => {
-console.log(`User connected ${socket.id}`);
-socket.on('fetch-message', (data) => {
-  console.log(data)
-    const {owner, receiver} = data;
-    messageService.getMessages(owner, receiver)
-    .then((res) => socket.emit('messages', JSON.stringify(res)))
-    .catch((err) => console.log(err));
-})
+  console.log(`User connected ${socket.id}`);
+  socket.on('fetch-message', (data) => {
+      const {owner, receiver} = data;
+      messageService.getMessages(owner, receiver)
+      .then((res) => socket.emit('messages', JSON.stringify(res)))
+      .catch((err) => console.log(err));
+  })
 
-socket.on('send_message', (data) => {
-  console.log(data)
-    const { message, owner, receiver } = data;
-     // Send to all users in room, including sender
-    messageService.saveMessage(message, owner, receiver) // Save message in db
-    .then((response) => {
-      io.emit('receive_message', response);
-    })
-    .catch((err) => console.log(err));
-});
-
+  socket.on('send_message', (data) => {
+      const { message, owner, receiver } = data;
+      // Send to all users in room, including sender
+      messageService.saveMessage(message, owner, receiver) // Save message in db
+      .then((response) => {
+        io.emit('receive_message', response);
+      })
+      .catch((err) => console.log(err));
+  });
+  socket.on('disconnect', () => {
+    socket.disconnect(true);
+    console.log(socket.id)
+  })
 });
 route(app);
 server.listen(3000, ()=> {

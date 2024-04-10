@@ -16,7 +16,9 @@ const messageCtrl = {
             for(let user of users){
                 const m = {};
                 m.user = user;
-                const firstMsg = Message.find({owner: id, receiver: user._id}).sort({created: -1}).limit(1);
+                const firstMsg = Message.find(
+                    {$or:[{owner: id, receiver: user._id},{owner: user._id, receiver: id}]}
+                ).sort({created: -1}).limit(1);
                 promises.push(firstMsg);
                 ret.push(m)
             }
@@ -59,15 +61,35 @@ const messageCtrl = {
        try {
         const {id} = req.params;
         const {receiver} = req.body;
-        const userMessage = await UserMessage.findOne({owner: id});
-        if(userMessage){
-            let exist = userMessage.receivers.find(it => it.toString() === receiver);
-            if(!exist) userMessage.receivers.push(receiver);
-           
+        const  q1= UserMessage.findOne({owner: id});
+        const  q2= UserMessage.findOne({owner: receiver});
+        let values = await Promise.all([q1,q2]);
+        const myUserMessage = values[0];
+        const receiverUserMessage = values[1];
+        console.log(receiverUserMessage)
+        if(myUserMessage){
+            let exist = myUserMessage.receivers.find(it => it.toString() === receiver);
+            if(!exist) {
+                myUserMessage.receivers.push(receiver);
+                await myUserMessage.save();
+            }
         }else{
             await UserMessage.create({
                 owner: id,
                 receivers: [receiver]
+            })
+        }
+        if(receiverUserMessage){
+            let exist = receiverUserMessage.receivers.find(it => it.toString() === id);
+            if(!exist){
+                receiverUserMessage.receivers.push(id);
+                await receiverUserMessage.save()
+            } 
+           
+        }else{
+            await UserMessage.create({
+                owner: receiver,
+                receivers: [id]
             })
         }
         const data = await User.findOne({_id: receiver});

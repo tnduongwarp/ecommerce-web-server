@@ -8,7 +8,7 @@ export const messageService = {
                     { owner: owner, receiver: receiver },
                     { owner: receiver, receiver: owner }
                 ]}).sort({created: 1})
-                .then(res => { console.log(res); resolve(res)})
+                .then(res => {  resolve(res)})
                 .catch(err => reject(err))
         })
     },

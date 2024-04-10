@@ -14,7 +14,7 @@ const productCtl = {
             let skip = Number(filter?.skip) || 0;
             let limit = Number(filter?.limit) || 0;
             let owner = filter?.owner;
-            let condition = {};
+            let condition = { delete: false};
             if(owner) condition['owner'] = owner;
             if(filter?.product){
                 if(filter.product !== 'all') {
@@ -53,6 +53,7 @@ const productCtl = {
                 error: false,
                 list_data: ret,
                 skip: skip,
+                
                 limit: limit,
                 total: total
             })
@@ -67,6 +68,7 @@ const productCtl = {
     },
     insertOne: async (req, res) => {
        try {
+        console.log(req.files)
             const {error} = productBodyValidation(req.body);
             if(error)  return res.status(400).json({ error: true, message: error.details[0].message });
             let data = await Product.create(req.body);
@@ -95,7 +97,7 @@ const productCtl = {
             data.image = data.image.split(',');
             let productOwner =await User.findById(product.owner);
             data.owner = productOwner;
-            let review =await Review.find({productId: id});
+            let review =await Review.find({productId: id}).sort({created: 'desc'});
             if(review && review.length){
                 data.totalRate = review.length;
                 let userIds = review.map(item => (item.owner));
@@ -212,6 +214,101 @@ const productCtl = {
                 message: 'Internal Server Error'
             })
         }
-    }
+    },
+    getListForSeller : async (req, res) => {
+        try {
+            let {owner} = req.params;
+            let {type} = req.query;
+            if(!owner){
+                res.status(500).json({
+                    error: true,
+                    message: 'OwnerId is required'
+                })
+            }
+            let status;
+            switch(type){
+                case '0': status = 'accepted'; break;
+                case '1': status = 'created'; break;
+            }
+            console.log(status)
+            const products = await Product.find({owner: owner, delete: false, status: status});
+            res.status(200).json({
+                error: false,
+                data: products
+            })
+        }
+         catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+    updateProduct: async (req, res) => {
+        const {id} = req.params;
+        const addImage = req.query?.addImage;
+        let filenames;
+        if(addImage && addImage.length) filenames = addImage.split(',').map(it =>  `/assets/img/${it}`)
+        if(!id) return res.status(500).json({
+            error: true,
+            message: 'id is required'
+        });
+        const product = await Product.findById(id);
+        if(!product) return res.status(500).json({
+            error: true,
+            message: 'product not found'
+        });
+        if(filenames && filenames.length) product.image = product.image +',' + filenames.join(',')
+        const { price, amount, title, description, deleteImages } = req.query;
+        if(price) product.price = price;
+        if(amount) product.amount = amount;
+        if(title) product.title = title;
+        if(description) product.description = description;
+        if(deleteImages){
+            let arr = deleteImages;
+            arr = arr.split(',')
+            let imageArray = product.image.split(',');
+            arr.forEach(d => {
+                for(let i = 0; i< imageArray.length; i++){
+                    if(imageArray[i].includes(d)) {imageArray.splice(i,1); i--}
+                }
+            });
+            product.image = imageArray.join(',')
+        }
+        
+        let data = await product.save();
+        res.status(200).json({
+            error: false,
+            data: data
+        })
+    },
+    deleteProduct: async (req, res) => {
+        try {
+            const {id} = req.params;
+            if(!id) return res.status(500).json({
+                error: true,
+                message: 'id is required'
+            });
+            const product = await Product.findById(id);
+            if(!product) return res.status(500).json({
+                error: true,
+                message: 'product not found'
+            });
+            product.delete = true;
+            await product.save()
+            res.status(200).json({
+                error: false,
+                message: 'success'
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+
 }
 export default productCtl;

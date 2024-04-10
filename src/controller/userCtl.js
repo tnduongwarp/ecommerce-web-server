@@ -31,7 +31,7 @@ let userCtl = {
                 message: 'invalid body'
             })
         }
-    } ,
+    },
     changePassword : async (req, res) => {
         try{
             const {id, newPassword} = req.body;
@@ -86,8 +86,7 @@ let userCtl = {
                 message: 'Internal server error'
             })
         }
-    }
-    ,
+    },
     updateById: async (req, res) => {
         try {
             let {id} = req.params;
@@ -113,7 +112,6 @@ let userCtl = {
             })
         }
     },
-
     uploadAvatar: async (req, res) => {
         try {
             const {id} = req.params;
