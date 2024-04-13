@@ -310,5 +310,7 @@ const productCtl = {
         }
     },
 
+    
+
 }
 export default productCtl;

@@ -5,11 +5,11 @@ import upload from '../utils/saveFile.js';
 
 const router = express.Router();
 //test without authorize
-router.post('/', [authorization.verifyToken, upload.array('files',10)], productCtl.insertOne);
+router.post('/', [authorization.verifyToken, authorization.isSeller ,upload.array('files',10)], productCtl.insertOne);
 router.get('/', [authorization.verifyToken], productCtl.getList);
 router.get('/:id',[authorization.verifyToken], productCtl.getById);
-router.post('/add-review',[authorization.verifyToken], productCtl.addReview);
-router.post('/add-to-cart',[authorization.verifyToken], productCtl.addToCart);
-router.get('/getListForSeller/:owner', [authorization.verifyToken], productCtl.getListForSeller)
-router.post('/update/:id',[authorization.verifyToken, upload.array('files',10)], productCtl.updateProduct )
+router.post('/add-review',[authorization.verifyToken, authorization.isUser], productCtl.addReview);
+router.post('/add-to-cart',[authorization.verifyToken, authorization.isUser], productCtl.addToCart);
+router.get('/getListForSeller/:owner', [authorization.verifyToken, authorization.isSeller], productCtl.getListForSeller)
+router.post('/update/:id',[authorization.verifyToken, authorization.isSeller ,upload.array('files',10)], productCtl.updateProduct )
 export default router;

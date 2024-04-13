@@ -49,19 +49,34 @@ const isAdmin = (req, res, next) => {
     }
 
 }
-const isUserOrAdmin = (req, res, next) => {
-    if (req.user.role === "admin" || req.user.role === "user") {
+const isSeller = (req, res, next) => {
+
+    if (req.user.role === "seller") {
         next();
         return;
     }
     else {
-        res.status(403).json({ error: true, message: "Required A Role!" });
+        res.status(403).json({ error: true, message: "Required Admin Role!" });
         return;
     }
+
+}
+const isSellerOrUser = (req, res, next) => {
+
+    if (req.user.role === "seller" || req.user.role ==='user') {
+        next();
+        return;
+    }
+    else {
+        res.status(403).json({ error: true, message: "Required Admin Role!" });
+        return;
+    }
+
 }
 const authorization = {
     verifyToken,
     isUser,
-    isAdmin, isUserOrAdmin
+    isAdmin, isSeller,
+    isSellerOrUser
 }
 export default authorization;

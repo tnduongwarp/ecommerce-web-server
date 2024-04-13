@@ -150,6 +150,35 @@ const orderCtl = {
             message: 'error'
         })
        }
+    },
+    getOrderForShop: async(req, res) => {
+        try {
+            const {shopId} = req.params;
+            const shop = await User.findById(shopId);
+            if(!shop) return res.status(400).json({
+                error: true,
+                message:' shop not found'
+            });
+            const products = await Product.find({owner: shopId});
+            const productIds = products.map(it => it._id);
+            console.log(productIds);
+            const {status} = req.query;
+            let condition = {
+                'products.productId':{ $in: productIds}
+            }
+            if(status) condition['status'] = status
+            const orders = await Product.find(condition);
+            res.status(200).json({
+                error: false,
+                data: orders
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
     }
 }
 export default orderCtl;

@@ -4,7 +4,8 @@ import authorization from '../utils/authorize.js';
 
 const router = express.Router();
 //test without authorize
-router.post('/',[authorization.verifyToken], orderCtl.createOrder);
-router.get('/:userId/list',[authorization.verifyToken], orderCtl.getListOrderForUser)
-router.get('/:id',[authorization.verifyToken], orderCtl.getOrderDetail)
+router.post('/',[authorization.verifyToken, authorization.isUser], orderCtl.createOrder);
+router.get('/:userId/list',[authorization.verifyToken, authorization.isUser], orderCtl.getListOrderForUser)
+router.get('/:id',[authorization.verifyToken, authorization.isSellerOrUser], orderCtl.getOrderDetail);
+
 export default router;

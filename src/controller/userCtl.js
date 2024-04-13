@@ -169,6 +169,29 @@ let userCtl = {
             message: 'Internal Server Error'
         })
        }
+    },
+
+    getDetail: async (req, res) => {
+        try {
+            const {id} = req.params;
+            const user = await User.findById(id);
+            if(!user){
+                res.status(400).json({
+                    error: true,
+                    message:'User Not Found'
+                })
+            }
+            res.status(200).json({
+                error: false,
+                data: user
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
     }
     
 }

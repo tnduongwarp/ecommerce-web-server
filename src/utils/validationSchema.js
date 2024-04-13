@@ -63,7 +63,8 @@ const createOrderBodyValidation = (body) => {
         address: Joi.string().required(),
         totalPrice: Joi.number().required(),
         products: Joi.array().min(1).required(),
-        paymentType: Joi.number().required()
+        paymentType: Joi.number().required(),
+        note: Joi.string().optional()
     });
     return schema.validate(body);
 }

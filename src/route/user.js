@@ -10,4 +10,5 @@ router.post('/delete/:id',[authorization.verifyToken, authorization.isAdmin], us
 router.post('/:id',[authorization.verifyToken], userCtl.updateById);
 router.post('/:id/upload-avatar', [authorization.verifyToken,upload.single('file')], userCtl.uploadAvatar);
 router.get('/shop_info/:id',[authorization.verifyToken], userCtl.getShopInfo);
+router.get('/:id', [authorization.verifyToken], userCtl.getDetail)
 export default router;
