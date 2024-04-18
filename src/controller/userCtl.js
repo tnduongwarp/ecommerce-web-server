@@ -192,7 +192,21 @@ let userCtl = {
                 message: 'Internal Server Error'
             })
         }
-    }
+    },
+
+    // getListClient: async (req, res) => {
+    //     try {
+    //         const {id} = req.params;
+
+            
+    //     } catch (error) {
+    //         console.log(error);
+    //         res.status(500).json({
+    //             error: true,
+    //             message: 'Internal Server Error'
+    //         })
+    //     }
+    // }
     
 }
 export default userCtl;

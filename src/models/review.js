@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 //Creating a Review Schema 
 const ReviewSchema = new Schema({
   owner: { type: Schema.Types.ObjectId, ref: 'User' },
+  orderId: { type: Schema.Types.ObjectId, ref: 'Order' },
   productId: { type: Schema.Types.ObjectId, ref: 'Product' },
   title: String,
   description: String,

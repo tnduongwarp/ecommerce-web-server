@@ -1,6 +1,7 @@
 import Order from '../models/order';
 import Product from '../models/product';
 import User from '../models/user';
+import mongoose from 'mongoose';
 
 import { createOrderBodyValidation } from '../utils/validationSchema';
 const OrderStatus = {
@@ -161,16 +162,99 @@ const orderCtl = {
             });
             const products = await Product.find({owner: shopId});
             const productIds = products.map(it => it._id);
-            console.log(productIds);
-            const {status} = req.query;
+            const {status, skip, limit, search, from, to, client} = req.query;
             let condition = {
                 'products.productId':{ $in: productIds}
             }
-            if(status) condition['status'] = status
-            const orders = await Product.find(condition);
+            if(!skip) skip = 0;
+            if(!limit) limit = 0;
+            if(status) condition['status'] = status;
+            if(from && to){
+                const obj = {
+                    $gte : new Date(from),
+                    $lte : new Date(to)
+                }
+                condition['created'] = obj
+            }
+            if(search) {
+                condition['_id'] = new mongoose.mongo.ObjectId(search)
+            }
+            if(client) condition['owner'] = client
+            const orders = Order.find(condition).skip(skip).limit(limit);
+            const allOrder = Order.find(condition);
+            const total =  Order.countDocuments(condition)
+            let clientIds, retOrder, totalOrder;
+            await Promise.all([orders, allOrder, total]).then(
+                data => {
+                    clientIds = data[1].map(it => it.owner);
+                    retOrder = data[0];
+                    totalOrder = data[2]
+                }
+            ).catch(err => console.log(err))
+            const clients = await User.find({_id: {$in: clientIds}})
             res.status(200).json({
                 error: false,
-                data: orders
+                data: retOrder,
+                total: totalOrder,
+                skip: Number(skip) + retOrder.length,
+                clients
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+
+    changeOrderStatus: async (req, res) =>{
+        try {
+            const {id} = req.params;
+            const order = await Order.findById(id);
+            if(!order) return res.status(400).json({
+                error: true,
+                message:' shop not found'
+            });
+            const {status} = req.body;
+            order.status = status;
+            let obj = {
+                status: status,
+                when: new Date()
+            }
+            order.statusHistory.push(obj);
+            let ret = await order.save();
+            res.status(200).json({
+                error: false,
+                data: ret
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+
+    addOrderTransitHistory: async (req, res) =>{
+        try {
+            const {id} = req.params;
+            const order = await Order.findById(id);
+            if(!order) return res.status(400).json({
+                error: true,
+                message:' shop not found'
+            });
+            const {status} = req.body;
+            let obj = {
+                status: status,
+                when: new Date()
+            }
+            order.transitHistory.push(obj);
+            let ret = await order.save();
+            res.status(200).json({
+                error: false,
+                data: ret
             })
         } catch (error) {
             console.log(error);
