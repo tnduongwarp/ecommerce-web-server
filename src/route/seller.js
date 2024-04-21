@@ -13,5 +13,6 @@ router.get('/order/:shopId', [authorization.verifyToken, authorization.isSeller]
 router.post('/order/status/:id', [authorization.verifyToken, authorization.isSeller], orderCtl.changeOrderStatus);
 router.post('/order/transitStatus/:id', [authorization.verifyToken, authorization.isSeller], orderCtl.addOrderTransitHistory);
 router.get('/analytic/:id',[authorization.verifyToken, authorization.isSeller], statiticCtl.getCompareRevenue);
-router.post('/analytic-by-products/:id',[authorization.verifyToken, authorization.isSeller], statiticCtl.getStatiticData)
+router.post('/analytic-by-products/:id',[authorization.verifyToken, authorization.isSeller], statiticCtl.getStatiticData);
+router.post('/yearly-revenue/:id',[authorization.verifyToken, authorization.isSeller], statiticCtl.getYearlyRevenue)
 export default router;

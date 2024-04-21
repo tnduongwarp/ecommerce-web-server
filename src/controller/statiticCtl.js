@@ -6,15 +6,16 @@ export const statiticCtl = {
     getStatiticData: async (req, res)=> {
         try {
             const { id } = req.params;
-            const { reqProductIds = []} = req.query;
+           
             const shop = await User.findById(id);
             if(!shop) return res.status(400).json({
                 error: true,
                 message:' shop not found'
             });
-            const products = await Product.find({owner: id});
+            const products = await Product.find({owner: id, delete: false});
             const productIds = products.map(it => it._id.toString());
-            const conditionProductIds = reqProductIds.filter(it => productIds.includes(it))
+            const { reqProductIds} = req.body;
+            const conditionProductIds = reqProductIds.filter(it => productIds.includes(it));
             const { from, to} = req.query;
             let condition = {
                 status:  { $in: ['completed','paid']},
@@ -42,36 +43,16 @@ export const statiticCtl = {
             })
         }
     },
-    analysData: (listOrder) => {
-        const summaryProductCount = {};
-        let totalPrice = 0;
-        let totalReview = 0;
-        let totalStar = 0;
-        for(let item of listOrder){
-            totalPrice += item?.totalPrice ?? 0;
-            for(let product of item?.products){
-                if(summaryProductCount[product.productId.toString()]){
-                    summaryProductCount[product.productId.toString()] += product?.quantity ?? 0;
-                }else{
-                    summaryProductCount[product.productId.toString()] = product?.quantity;
-                }
-            }
-        }
-        return {
-            revenue: totalPrice,
-            orderNumber: listOrder.length,
-            sumary: summaryProductCount
-        }
-    },
+    
     getCompareRevenue: async (req, res) =>{
         try {
             const {id} = req.params;
-             const shop = await User.findById(id);
+            const shop = await User.findById(id);
             if(!shop) return res.status(400).json({
                 error: true,
                 message:' shop not found'
             });
-            const products = await Product.find({owner: id});
+            const products = await Product.find({owner: id, delete: false});
             const productIds = products.map(it => it._id.toString());
             const fromThisMonth = startOfMonth(new Date());
             const toThisMonth = new Date();
@@ -87,6 +68,7 @@ export const statiticCtl = {
                 }
                 conditionThisMonth['created'] = obj
             }
+            console.log(conditionThisMonth)
             const orderDataThisMonth = Order.find(conditionThisMonth);
             let date = new Date();
             const toLastMonth = new Date();
@@ -143,6 +125,46 @@ export const statiticCtl = {
                 message: 'Internal Server Error'
             })
         }
+    },
+    getYearlyRevenue: async (req, res) => {
+        try {
+            const {id} = req.params;
+            const { year} = req.body;
+            const shop = await User.findById(id);
+            if(!shop) return res.status(400).json({
+                error: true,
+                message:' shop not found'
+            });
+            const products = await Product.find({owner: id, delete: false});
+            const productIds = products.map(it => it._id.toString());
+            const { from, to} = req.query;
+            let condition = {
+                status:  { $in: ['completed','paid']},
+                'products.productId':{ $in: productIds}
+            }
+            const obj = {
+                $gte : getFirstDayOfYear(year),
+                $lte :getLastDayOfYear(year)
+            }
+            condition['created'] = obj
+            const allOrder =await Order.find(condition);
+            let data = [0,0,0,0,0,0,0,0,0,0,0,0];
+            for(let order of allOrder){
+                let date = new Date(order.created);
+                let month = date.getMonth();
+                data[month] += order.totalPrice
+            }
+            res.status(200).json({
+                error: false,
+                data: data
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
     }
 }
 function startOfMonth(date){
@@ -170,4 +192,33 @@ async function analystData1(orders){
     ret['totalMoney'] = totalMoney;
     ret['orderCount'] = orders.length;
     return ret;
+}
+ function analysData (listOrder){
+    const summaryProductCount = {};
+    let totalPrice = 0;
+    let totalReview = 0;
+    let totalStar = 0;
+    for(let item of listOrder){
+        totalPrice += item?.totalPrice ?? 0;
+        for(let product of item?.products){
+            if(summaryProductCount[product.productId.toString()]){
+                summaryProductCount[product.productId.toString()] += product?.quantity ?? 0;
+            }else{
+                summaryProductCount[product.productId.toString()] = product?.quantity;
+            }
+        }
+    }
+    return {
+        revenue: totalPrice,
+        orderNumber: listOrder.length,
+        sumary: summaryProductCount
+    }
+}
+
+function getFirstDayOfYear(year) {
+    return new Date(year, 0, 1); // Tháng 0 là tháng 1
+}
+
+function getLastDayOfYear(year) {
+    return new Date(year, 11, 31); // Tháng 11 là tháng 12, ngày 31 là ngày cuối cùng của năm
 }
