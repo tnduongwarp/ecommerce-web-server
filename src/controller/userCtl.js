@@ -115,12 +115,12 @@ let userCtl = {
     uploadAvatar: async (req, res) => {
         try {
             const {id} = req.params;
-            const fileName = req.file.originalname;
+            const {fileName} = req.body;
             if(!fileName) return res.statsu(400).json({
                 error: true,
                 message: 'Error'
             });
-            const picture = `/assets/img/${fileName}`;
+            const picture = fileName;
             let user = await User.findOne({_id: id});
             if(!user) res.status(400).json({
                 error: true,
@@ -194,19 +194,38 @@ let userCtl = {
         }
     },
 
-    // getListClient: async (req, res) => {
-    //     try {
-    //         const {id} = req.params;
-
-            
-    //     } catch (error) {
-    //         console.log(error);
-    //         res.status(500).json({
-    //             error: true,
-    //             message: 'Internal Server Error'
-    //         })
-    //     }
-    // }
+    getListUser: async (req, res) => {
+        try {
+            console.log(req.query)
+            const { skip = 0, limit = 10, role} = req.query;
+            console.log(skip, limit, role)
+            let total, listData;
+            if(role){
+                total = User.countDocuments({role: role});
+                listData = User.find({role: role}).skip(skip).limit(limit);
+            }else{
+                total = User.countDocuments({});
+                listData = User.find({}).skip(skip).limit(limit);
+            }
+            await Promise.all([total, listData]).then(
+                data => {
+                    res.status(200).json({
+                        error: false,
+                        list_data: data[1],
+                        skip: skip,
+                        limit: limit,
+                        total: data[0]
+                    })
+                }
+            )
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    }
     
 }
 export default userCtl;

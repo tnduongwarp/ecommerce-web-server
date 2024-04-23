@@ -247,9 +247,9 @@ const productCtl = {
     },
     updateProduct: async (req, res) => {
         const {id} = req.params;
-        const addImage = req.query?.addImage;
+        const addImage = req.body?.addImage;
         let filenames;
-        if(addImage && addImage.length) filenames = addImage.split(',').map(it =>  `/assets/img/${it}`)
+        if(addImage && addImage.length) filenames = addImage
         if(!id) return res.status(500).json({
             error: true,
             message: 'id is required'
@@ -260,14 +260,13 @@ const productCtl = {
             message: 'product not found'
         });
         if(filenames && filenames.length) product.image = product.image +',' + filenames.join(',')
-        const { price, amount, title, description, deleteImages } = req.query;
+        const { price, amount, title, description, deleteImages } = req.body;
         if(price) product.price = price;
         if(amount) product.amount = amount;
         if(title) product.title = title;
         if(description) product.description = description;
         if(deleteImages){
             let arr = deleteImages;
-            arr = arr.split(',')
             let imageArray = product.image.split(',');
             arr.forEach(d => {
                 for(let i = 0; i< imageArray.length; i++){
