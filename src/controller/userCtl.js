@@ -96,9 +96,12 @@ let userCtl = {
                 message: 'User not found'
             });
             const params = req.body;
+            console.log(params)
             for(let key of Object.keys(params)){
                 user[key] = params[key];
-            }
+                console.log(user[key])
+            };
+            console.log(user)
             let updatedUser = await user.save();
             res.status(200).json({
                 error: false,
@@ -201,11 +204,11 @@ let userCtl = {
             console.log(skip, limit, role)
             let total, listData;
             if(role){
-                total = User.countDocuments({role: role});
-                listData = User.find({role: role}).skip(skip).limit(limit);
+                total = User.countDocuments({role: role, $or: [{isDelete: false}, {isDelete: {$exists: false}}]});
+                listData = User.find({role: role, $or: [{isDelete: false}, {isDelete: {$exists: false}}]}).skip(skip).limit(limit);
             }else{
-                total = User.countDocuments({});
-                listData = User.find({}).skip(skip).limit(limit);
+                total = User.countDocuments({ $or: [{isDelete: false}, {isDelete: {$exists: false}}]});
+                listData = User.find({ $or: [{isDelete: false}, {isDelete: {$exists: false}}]}).skip(skip).limit(limit);
             }
             await Promise.all([total, listData]).then(
                 data => {

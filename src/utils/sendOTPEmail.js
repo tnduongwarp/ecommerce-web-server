@@ -11,9 +11,9 @@ function sendEmail({ recipient_email, OTP }) {
       });
   
       const mail_configs = {
-        from: 'ENGLISH LEARNING WEBSITE',
+        from: 'ECOMMERCE',
         to: recipient_email,
-        subject: "ENGLISH LEARNING WEB PASSWORD RECOVERY",
+        subject: "KHÔI PHỤC MẬT KHẨU",
         html: `<!DOCTYPE html>
             <html lang="en" >
             <head>
@@ -27,7 +27,7 @@ function sendEmail({ recipient_email, OTP }) {
             <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
                 <div style="margin:50px auto;width:70%;padding:20px 0">
                 <div style="border-bottom:1px solid #eee">
-                    <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">ENGLISH LEARNING WEB</a>
+                    <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">SÀN THƯƠNG MẠI ĐIỆN TỬ ECOMMERCE</a>
                 </div>
                 <p style="font-size:1.1em">Hi,</p>
                 <p>Use the following OTP to complete your Password Recovery Procedure. OTP is valid for 5 minutes</p>
