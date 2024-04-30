@@ -14,7 +14,8 @@ const UserSchema = new Schema({
     role: String,
     metadata : { type: Object},
     created: { type: Date, default: Date.now },
-    isDelete: {type: Boolean, default: false}
+    isDelete: {type: Boolean, default: false},
+    shopName:{type: String, default:''}
 });
 
 let User = mongoose.model('User', UserSchema);

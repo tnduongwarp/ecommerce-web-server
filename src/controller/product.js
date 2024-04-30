@@ -7,6 +7,7 @@ import Cart from '../models/cart';
 import { UserRefreshClient } from 'google-auth-library';
 import Order from '../models/order';
 import { AppConst } from '../AppConstant';
+import { sendEmailToUser } from '../utils/sendOTPEmail';
 const productCtl = {
     getList: async (req, res) => {
         try {
@@ -308,8 +309,74 @@ const productCtl = {
             })
         }
     },
-
     
+    getListForAdmin: async (req, res) => {
+        try {
+            let {type} = req.query;
+            let status;
+            switch(type){
+                case '0': status = 'accepted'; break;
+                case '1': status = 'created'; break;
+            }
+            console.log(status)
+            const products = await Product.find({delete: false, status: status});
+            let ownerIds = products.map(it => it.owner);
+            const users = await User.find({_id: {$in: ownerIds}});
+            let ret = [...products];
+            ret.forEach(it => {
+                it.owner = users.find(u => u._id.toString() === it.owner.toString())
+            })
+            res.status(200).json({
+                error: false,
+                data: ret
+            })
+        }
+         catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
 
+    acceptProduct: async (req, res) => {
+        try {
+            const {id} = req.params;
+            const product = await Product.findOne({_id: id});
+            if(!product){
+                res.status(400).json({
+                    error: false,
+                    message: 'Product not found'
+                })
+            }
+            product.status = 'accepted';
+            await product.save();
+            let user = await User.findOne({_id: product.owner});
+            let mailInfo = {
+                recipient_email: user.email,
+                name: user.firstname,
+                subject: 'SẢN PHẨM MỚI ĐƯỢC PHÊ DUYỆT',
+                content: `Sản phẩm ${product.title} của bạn đã được phê duyệt và có thể mua bán trên sàn. Cảm ơn vì đã sử dụng dịch vụ của chúng tôi.`
+            }
+            console.log(mailInfo)
+            sendEmailToUser(mailInfo)
+            .then((response) => res.status(200).json({
+                error: false,
+                message: response.message
+              }))
+              .catch((error) => res.status(500).send({
+                error: true,
+                message: error.message
+              }));
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+
+    }
 }
 export default productCtl;

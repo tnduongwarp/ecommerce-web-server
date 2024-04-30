@@ -12,4 +12,5 @@ router.post('/add-review',[authorization.verifyToken, authorization.isUser], pro
 router.post('/add-to-cart',[authorization.verifyToken, authorization.isUser], productCtl.addToCart);
 router.get('/getListForSeller/:owner', [authorization.verifyToken, authorization.isSeller], productCtl.getListForSeller)
 router.post('/update/:id',[authorization.verifyToken, authorization.isSeller], productCtl.updateProduct )
+router.get('/accept/:id', [authorization.verifyToken, authorization.isAdmin], productCtl.acceptProduct)
 export default router;

@@ -1,7 +1,8 @@
 import Product from '../models/product';
 import Order from '../models/order';
 import Review from '../models/review';
-import User from '../models/user'
+import User from '../models/user';
+import { sendEmailToUser } from '../utils/sendOTPEmail';
 export const statiticCtl = {
     getStatiticData: async (req, res)=> {
         try {
@@ -71,10 +72,9 @@ export const statiticCtl = {
             console.log(conditionThisMonth)
             const orderDataThisMonth = Order.find(conditionThisMonth);
             let date = new Date();
-            const toLastMonth = new Date();
-            toLastMonth.setMonth(date.getMonth() - 1);
-            console.log(toLastMonth)
-            const fromLastMonth = startOfMonth(toLastMonth);
+            date.setMonth(date.getMonth() - 1);
+            const toLastMonth = startOfMonth(new Date());
+            const fromLastMonth = startOfMonth(date);
             let conditionLastMonth = {
                 status:  { $in: ['completed','paid']},
                 'products.productId':{ $in: productIds}
@@ -83,7 +83,7 @@ export const statiticCtl = {
             if(fromLastMonth && toLastMonth){
                 const obj = {
                     $gte : fromLastMonth,
-                    $lte : toLastMonth
+                    $lt : toLastMonth
                 }
                 conditionLastMonth['created'] = obj
             }
@@ -106,7 +106,7 @@ export const statiticCtl = {
             };
             let totalMnThisMonth = dataThisMonth.totalMoney;
             if(totalMnLastMonth && totalMnThisMonth){
-                ret['growth'] = toThisMonth/toLastMonth - 1;
+                ret['growth'] = totalMnThisMonth/totalMnLastMonth - 1;
             }else if(totalMnLastMonth){
                 ret['growth'] = totalMnLastMonth*(-100)
             }else if(totalMnThisMonth){
@@ -165,11 +165,196 @@ export const statiticCtl = {
                 message: 'Internal Server Error'
             })
         }
+    },
+
+    getAdminStatiticData: async (req, res) => {
+        try {
+            const ret = {};
+            const promises = [];
+            let p1 = User.countDocuments({role: 'user'});
+            promises.push(p1);
+            let p2 = User.countDocuments({role: 'user', created: { $gte: startOfMonth(new Date())}});
+            promises.push(p2);
+            let p3 = User.countDocuments({role: 'seller'});
+            promises.push(p3);
+            let p4 = User.countDocuments({role: 'seller', created: { $gte: startOfMonth(new Date())}});
+            promises.push(p4); 
+            let p5 = Order.find({});
+            promises.push(p5);
+            let p6 = Order.find({created: { $gte: startOfMonth(new Date())}});
+            promises.push(p6);
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            let p7 = Order.find({created: {$lte: startOfMonth(new Date()), $gte: startOfMonth(lastMonth)}});
+            promises.push(p7);
+            Promise.all(promises).then(
+                datas => {
+                    ret['totalUser'] = datas[0];
+                    ret['userThisMonth'] = datas[1];
+                    ret['totalSeller'] = datas[2];
+                    ret['sellerThisMonth'] = datas[3];
+                    ret['totalOrder'] = datas[4].length;
+                    ret['orderThisMonth'] = datas[5].length;
+                    let totalRevenue = 0;
+                    let thisMonthRevenue = 0;
+                    let lastMonthRevenue = 0;
+                    for(let order of datas[4]){
+                        totalRevenue += order.totalPrice;
+                    }
+                    for(let order of datas[5]){
+                        thisMonthRevenue += order.totalPrice;
+                    }
+                    for(let order of datas[6]){
+                        lastMonthRevenue += order.totalPrice;
+                    }
+                    ret['totalRevenue'] = totalRevenue;
+                    ret['thisMonthRevenue'] = thisMonthRevenue;
+                    if(thisMonthRevenue && lastMonthRevenue){
+                        ret['growth'] = thisMonthRevenue/lastMonthRevenue - 1;
+                    }else if(lastMonthRevenue){
+                        ret['growth'] = lastMonthRevenue*(-100)
+                    }else if(thisMonthRevenue){
+                        ret['growth'] = thisMonthRevenue*(100)
+                    }else{
+                        ret['growth'] = 0
+                    }
+                    res.status(200).json({
+                        error: false,
+                        data: ret
+                    })
+                }
+            ).catch(err => {
+                console.log(err);
+                res.status(500).json({
+                    error: true,
+                    message: 'Internal Server Error'
+                })
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+    getAdminVisualData: async (req, res) => {
+        try {
+            const {year = new Date().getFullYear()} = req.body;
+            const condition = {}
+            const obj = {
+                $gte : getFirstDayOfYear(year),
+                $lte :getLastDayOfYear(year)
+            }
+            condition['created'] = obj
+            const allOrder =await Order.find(condition);
+            let data = [0,0,0,0,0,0,0,0,0,0,0,0];
+            for(let order of allOrder){
+                let date = new Date(order.created);
+                let month = date.getMonth();
+                data[month] += order.totalPrice
+            };
+            res.status(200).json({
+                error: false,
+                data: data
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+
+    getAdminDetailData: async (req, res) => {
+        try {
+            const {month} = req.query;
+            let range;
+            if(month == 'thisMonth'){
+                range = {
+                    $gte: startOfMonth(new Date())
+                }
+            }else if(month == 'lastMonth'){
+                let date = new Date();
+                date.setMonth(date.getMonth() -1);
+                range = {
+                    $gte: startOfMonth(date),
+                    $lt: startOfMonth(new Date())
+                }
+            }
+            const sellers = await User.find({role: 'seller', isDelete: false});
+            let ownerIds = sellers.map(it => it._id);
+            const products = await Product.find({owner: {$in: ownerIds}});
+            
+            let productIds = products.map(it => it._id);
+            const orders = await Order.find({'products.productId': {$in: productIds}, created: range});
+            let ret = [];
+            for(let seller of sellers){
+                const obj = {
+                    _id: seller._id,
+                    name: seller?.shopName,
+                    picture: seller.picture,
+                    email: seller.email
+                };
+                let productIds = products.filter(it => (it.owner.toString() === seller._id.toString())).map(it => it._id.toString());
+                let order = orders.filter(it => {
+                    let pId = it.products.map(p => p.productId.toString());
+                    for(let id of pId){
+                        if(productIds.includes(id))
+                        return true;
+                    }
+                    return false;
+                });
+                let sum = 0;
+                order.forEach(o => {
+                    sum += o.totalPrice;
+                });
+                obj['revenue'] = sum;
+                ret.push(obj);
+            }
+            res.status(200).json({
+                error: false,
+                data: ret
+            })
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+    sendMail: async (req, res) => {
+        try {
+            const { recipient_email, name, subject, content} = req.body;
+            if(!recipient_email) res.status(400).json({error: true, message: "email is require!"});
+            const user = await User.findOne({email: recipient_email});
+            if(!user) res.status(400).json({error: true, message:"email is incorrect!"});
+            else{
+                sendEmailToUser({recipient_email, name, subject, content})
+                .then((response) => res.status(200).json({
+                  error: false,
+                  message: response.message
+                }))
+                .catch((error) => res.status(500).send({
+                  error: true,
+                  message: error.message
+                }));
+            }
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
     }
 }
 function startOfMonth(date){
    return new Date(date.getFullYear(), date.getMonth(), 1);
 }
+
 async function analystData1(orders){
     let ret = {}
     const orderIds = orders.map(it => it._id);
