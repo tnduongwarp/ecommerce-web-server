@@ -68,6 +68,15 @@ const createOrderBodyValidation = (body) => {
     return schema.validate(body);
 }
 
+const createBidBodyValidation = (body) => {
+    const schema = Joi.object({
+        owner: Joi.string().required(),
+        products: Joi.array().required(),
+        price: Joi.number().required(),
+    });
+    return schema.validate(body);
+}
+
 export {
     signUpBodyValidation,
     logInBodyValidation,
@@ -75,5 +84,6 @@ export {
     productBodyValidation,
     reviewBodyValidation,
     addToCartBodyValidation,
-    createOrderBodyValidation
+    createOrderBodyValidation,
+    createBidBodyValidation
 };

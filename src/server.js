@@ -7,6 +7,8 @@ import route from './route/index.js';
 import { Server } from 'socket.io';
 import http from 'http';
 import { messageService } from './utils/message.js';
+import { bidService } from './utils/bid.js';
+import cron from 'node-cron'
 dotenv.config();
 connect();
 const app = express();
@@ -38,12 +40,22 @@ io.on('connection', (socket) => {
       })
       .catch((err) => console.log(err));
   });
+
+  socket.on('update_bid', async (data) => {
+    let {from, to} = data
+    const bids = await bidService.getAllBidCreated(from, to);
+    io.emit('new_bid', bids)
+  })
   socket.on('disconnect', () => {
     socket.disconnect(true);
     console.log(socket.id)
   })
 });
+
 route(app);
+cron.schedule('0 0 * * 1',async () => {
+    await bidService.refreshBid()
+});
 server.listen(3000, ()=> {
     console.log("server is listening on port 3000")
 })

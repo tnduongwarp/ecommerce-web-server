@@ -4,6 +4,7 @@ import authorization from '../utils/authorize.js';
 import productCtl from '../controller/product.js';
 import orderCtl from '../controller/order.js';
 import { statiticCtl } from '../controller/statiticCtl.js';
+import bidCtl from '../controller/bidCtl.js';
 const router = express.Router();
 //test without authorize
 // router.post('/',cartCtl);
@@ -18,6 +19,10 @@ router.post('/yearly-revenue/:id',[authorization.verifyToken, authorization.isSe
 router.get('/admin/statitic', [authorization.verifyToken, authorization.isAdmin], statiticCtl.getAdminStatiticData);
 router.post('/admin/chart', [authorization.verifyToken, authorization.isAdmin], statiticCtl.getAdminVisualData);
 router.get('/admin/detail', [authorization.verifyToken, authorization.isAdmin], statiticCtl.getAdminDetailData);
-router.post('/admin/send_mail', [authorization.verifyToken, authorization.isAdmin], statiticCtl.sendMail)
-router.get('/admin/product', [authorization.verifyToken, authorization.isAdmin], productCtl.getListForAdmin)
+router.post('/admin/send_mail', [authorization.verifyToken, authorization.isAdmin], statiticCtl.sendMail);
+router.get('/admin/product', [authorization.verifyToken, authorization.isAdmin], productCtl.getListForAdmin);
+router.post('/add_bid', [authorization.verifyToken, authorization.isSeller], bidCtl.addBiz);
+router.post('/update_bid/:id', [authorization.verifyToken, authorization.isSellerOrAdmin], bidCtl.updateBid);
+router.post('/bids',  [authorization.verifyToken, authorization.isSellerOrAdmin], bidCtl.getAllBids)
+router.get('/bid_history/:id', [authorization.verifyToken, authorization.isSeller], bidCtl.getBidHistory)
 export default router;

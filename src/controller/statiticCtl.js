@@ -352,7 +352,7 @@ export const statiticCtl = {
     }
 }
 function startOfMonth(date){
-   return new Date(date.getFullYear(), date.getMonth(), 1);
+   return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0, 0);
 }
 
 async function analystData1(orders){
@@ -401,9 +401,9 @@ async function analystData1(orders){
 }
 
 function getFirstDayOfYear(year) {
-    return new Date(year, 0, 1); // Tháng 0 là tháng 1
+    return new Date(year, 0, 1, 0, 0, 0, 0, 0); // Tháng 0 là tháng 1
 }
 
 function getLastDayOfYear(year) {
-    return new Date(year, 11, 31); // Tháng 11 là tháng 12, ngày 31 là ngày cuối cùng của năm
+    return new Date(year, 11, 31, 0, 0, 0, 0, 0); // Tháng 11 là tháng 12, ngày 31 là ngày cuối cùng của năm
 }

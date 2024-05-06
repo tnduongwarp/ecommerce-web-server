@@ -286,6 +286,7 @@ const productCtl = {
     deleteProduct: async (req, res) => {
         try {
             const {id} = req.params;
+            const {reason = '...'} = req.body;
             if(!id) return res.status(500).json({
                 error: true,
                 message: 'id is required'
@@ -300,7 +301,17 @@ const productCtl = {
             res.status(200).json({
                 error: false,
                 message: 'success'
-            })
+            });
+            let user = await User.findOne({_id: product.owner});
+            let mailInfo = {
+                recipient_email: user.email,
+                name: user.firstname,
+                subject: 'SẢN PHẨM BỊ XÓA',
+                content: `Sản phẩm ${product.title} của bạn đã bị quản trị viên xóa vì lí do ${reason}. Cảm ơn vì đã sử dụng dịch vụ của chúng tôi.`
+            }
+            sendEmailToUser(mailInfo)
+            .then((response) => {console.log('send email to ', mailInfo.recipient_email)})
+              .catch((error) => console.log(error));
         } catch (error) {
             console.log(error);
             res.status(500).json({
@@ -352,6 +363,10 @@ const productCtl = {
             }
             product.status = 'accepted';
             await product.save();
+            res.status(200).json({
+                error: false,
+                message: 'update success'
+            })
             let user = await User.findOne({_id: product.owner});
             let mailInfo = {
                 recipient_email: user.email,
@@ -359,16 +374,9 @@ const productCtl = {
                 subject: 'SẢN PHẨM MỚI ĐƯỢC PHÊ DUYỆT',
                 content: `Sản phẩm ${product.title} của bạn đã được phê duyệt và có thể mua bán trên sàn. Cảm ơn vì đã sử dụng dịch vụ của chúng tôi.`
             }
-            console.log(mailInfo)
             sendEmailToUser(mailInfo)
-            .then((response) => res.status(200).json({
-                error: false,
-                message: response.message
-              }))
-              .catch((error) => res.status(500).send({
-                error: true,
-                message: error.message
-              }));
+            .then((response) => {console.log('send email to ', mailInfo.recipient_email)})
+              .catch((error) => console.log(error));
         } catch (error) {
             console.log(error);
             res.status(500).json({
