@@ -22,6 +22,23 @@ const orderCtl = {
                 when: new Date()
             })
             order.transitHistory = transitHistory;
+            if(order.paymentType === 2){
+                transitHistory.push({
+                    status:'Đơn hàng đã được thanh toán',
+                    when: new Date()
+                });
+                let statusHistory = [
+                    {
+                        status: 'created',
+                        when: new Date()
+                    },
+                    {
+                        status: 'paid',
+                        when : new Date()
+                    }
+                ];
+                order.statusHistory = statusHistory;
+            }
             let data = await Order.create(order);
             const { products } = req.body;
             let promises = [];

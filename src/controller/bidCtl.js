@@ -2,6 +2,7 @@ import Bid from '../models/seller_biz';
 import Product from '../models/product';
 import User from '../models/user'
 import { createBidBodyValidation } from '../utils/validationSchema';
+import {sendEmailToUser} from '../utils/sendOTPEmail'
 const bidCtl = {
     addBiz: async (req, res) => {
         try {
@@ -27,10 +28,23 @@ const bidCtl = {
             let bid = await Bid.findById(id);
             if(!bid) return res.status(400).json({error: true, message: `Bid ${id} not found`});
             const body = req.body;
+            let shouldSendEmail = false;
             for(let key of Object.keys(body)){
                 bid[key] = body[key];
+                if(key == 'status' && body[key] == 'accepted'){
+                    shouldSendEmail = true;
+                }
             }
             let updateBid = await bid.save();
+            if(shouldSendEmail){
+                let seller = await User.findOne({_id: bid.owner});
+                sendEmailToUser({
+                    recipient_email:seller.email,
+                    name: seller.firstname,
+                    subject: 'Đấu giá thành công',
+                    content: `Đơn đấu giá của bạn đã được chấp nhận, sản phẩm của bạn sẽ được hiển thị ở trang chủ của sàn chúng tôi trong tuần tới, vui lòng thanh toán ${bid.price} đ để không bị gián đoạn dịch vụ`
+                }).then().catch(err => console.log(err))
+            }
             res.status(200).json({
                 error: false,
                 data: updateBid
@@ -106,7 +120,26 @@ const bidCtl = {
                 data: ret
             })
         } catch (error) {
-            
+            console.log(error)
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
+        }
+    },
+    getAcceptedBid: async(req, res) => {
+        try {
+            const bids = await Bid.find({status: 'accepted', isActive: true});
+            res.status(200).json({
+                error: false,
+                data: bids
+            })
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({
+                error: true,
+                message: 'Internal Server Error'
+            })
         }
     }
 }

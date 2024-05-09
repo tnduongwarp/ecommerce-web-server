@@ -15,10 +15,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
+app.set('view engine', 'ejs');
+app.set('views', __dirname + '/views');
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:4200','http://localhost:4001'],
+      origin: ['http://localhost:3000', 'http://localhost:4200','http://localhost:4001','https://sandbox.vnpayment.vn/paymentv2'],
       methods: ['GET', 'POST'],
     },
   });

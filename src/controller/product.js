@@ -8,6 +8,7 @@ import { UserRefreshClient } from 'google-auth-library';
 import Order from '../models/order';
 import { AppConst } from '../AppConstant';
 import { sendEmailToUser } from '../utils/sendOTPEmail';
+import mongoose from 'mongoose';
 const productCtl = {
     getList: async (req, res) => {
         try {
@@ -102,25 +103,27 @@ const productCtl = {
             if(review && review.length){
                 data.totalRate = review.length;
                 let userIds = review.map(item => (item.owner));
-                let u = [];
-                userIds.forEach(function(item) {
-                    if(u.indexOf(item) < 0) {
-                        u.push(item);
-                    }
-                });
-                let promises = u.map(item => {
-                    return User.findById(u)
-                });
-                let userMap = new Map()
-                await Promise.all(promises)
-                .then(values => {
-                    
-                    for(let val of values) userMap.set(val._id.toString(), val);
-                });
+                // let u = [];
+                // userIds.forEach(function(item) {
+                //     if(!u.includes(item) < 0) {
+                //         u.push(item);
+                //     }
+                // });
+                // console.log(userIds)
+                // let promises = u.map(item => {
+                //     return User.findById(new mongoose.mongo.ObjectId(item))
+                // });
+                // let userMap = new Map()
+                // await Promise.all(promises)
+                // .then(values => {
+                //     console.log(values)
+                //     for(let val of values) userMap.set(val._id.toString(), val);
+                // });
+                let users = await User.find({_id: {$in: userIds}});
                 let reviews = [];
                 for(let r of review) {
                     let obj = {...r._doc};
-                    obj.owner = userMap.get(r.owner.toString());
+                    obj.owner = users.find(it => it._id.toString() == obj.owner.toString());
                     reviews.push(obj)
                 }
                 data.reviews = reviews;

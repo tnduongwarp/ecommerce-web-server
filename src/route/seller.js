@@ -23,6 +23,7 @@ router.post('/admin/send_mail', [authorization.verifyToken, authorization.isAdmi
 router.get('/admin/product', [authorization.verifyToken, authorization.isAdmin], productCtl.getListForAdmin);
 router.post('/add_bid', [authorization.verifyToken, authorization.isSeller], bidCtl.addBiz);
 router.post('/update_bid/:id', [authorization.verifyToken, authorization.isSellerOrAdmin], bidCtl.updateBid);
-router.post('/bids',  [authorization.verifyToken, authorization.isSellerOrAdmin], bidCtl.getAllBids)
-router.get('/bid_history/:id', [authorization.verifyToken, authorization.isSeller], bidCtl.getBidHistory)
+router.post('/bids',  [authorization.verifyToken, authorization.isSellerOrAdmin], bidCtl.getAllBids);
+router.get('/bid_history/:id', [authorization.verifyToken, authorization.isSeller], bidCtl.getBidHistory);
+router.get('/bids/accepted', bidCtl.getAcceptedBid)
 export default router;
