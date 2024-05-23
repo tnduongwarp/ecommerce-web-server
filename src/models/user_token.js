@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const UserTokenSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
   token : String,
-  created: { type: Date, default: Date.now }
+  created: { type: Date, default: new Date() }
 });
 
 

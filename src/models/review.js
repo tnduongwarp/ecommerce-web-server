@@ -9,7 +9,7 @@ const ReviewSchema = new Schema({
   title: String,
   description: String,
   rating: { type: Number, default: 0},
-  created: { type: Date, default: Date.now },
+  created: { type: Date, default: new Date() },
   reply: {type: String, default: ''}
 });
 

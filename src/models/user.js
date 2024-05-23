@@ -13,9 +13,10 @@ const UserSchema = new Schema({
     },
     role: String,
     metadata : { type: Object},
-    created: { type: Date, default: Date.now },
+    created: { type: Date, default: new Date() },
     isDelete: {type: Boolean, default: false},
-    shopName:{type: String, default:''}
+    shopName:{type: String, default:''},
+    shopAddress: {type: String}
 });
 
 let User = mongoose.model('User', UserSchema);

@@ -11,7 +11,7 @@ const OrderSchema = new Schema({
     quantity: { type: Number, default: 1 }
   }],
   paymentType: { type: Number},
-  created: {type: Date, default: Date.now()},
+  created: {type: Date, default: new Date()},
   status: {type: String, default: 'created'},
   statusHistory: { type: [
     {
@@ -20,12 +20,12 @@ const OrderSchema = new Schema({
     }
   ], default: [{
     status:'created',
-    when: Date.now()
+    when: new Date()
   }]},
   transitHistory: {
     type: [{
       status: String,
-      when: { type: Date, default: Date.now()}
+      when: { type: Date, default: new Date()}
     }]
   },
   note: {type: String, default: ''}

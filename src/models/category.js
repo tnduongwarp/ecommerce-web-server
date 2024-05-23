@@ -8,7 +8,7 @@ const Schema = mongoose.Schema;                // Assigning mongoose schema to v
 //creating CategorySchema
 const CategorySchema = new Schema({
   name: { type: String, unique: true, lowercase: true },
-  created: { type: Date, default: Date.now }
+  created: { type: Date, default: new Date() }
 });
 
 

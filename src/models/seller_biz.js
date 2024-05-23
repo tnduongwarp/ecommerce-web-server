@@ -7,7 +7,7 @@ const BidSchema = new Schema({
     image: { type: String}
   }],
   price: {type: Number},
-  created: {type: Date, default: Date.now()},
+  created: {type: Date, default: new Date()},
   status: {type: String, default: 'created'},
   isActive: {type: Boolean, default: false}
 });

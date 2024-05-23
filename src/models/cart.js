@@ -6,7 +6,7 @@ const CartSchema = new Schema({
     productId: { type: Schema.Types.ObjectId, ref: 'Product'},
     quantity: { type: Number, default: 1 }
   }],
-  created: {type: Date, default: Date.now()},
+  created: {type: Date, default: new Date()},
 });
 
 module.exports = mongoose.model('Cart', CartSchema);
