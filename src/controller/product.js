@@ -6,7 +6,7 @@ import User from '../models/user';
 import Cart from '../models/cart';
 import { UserRefreshClient } from 'google-auth-library';
 import Order from '../models/order';
-import { AppConst } from '../AppConstant';
+import { AppConst } from '../const/AppConstant';
 import { sendEmailToUser } from '../utils/sendOTPEmail';
 import mongoose from 'mongoose';
 const productCtl = {

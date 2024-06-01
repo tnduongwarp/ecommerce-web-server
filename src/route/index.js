@@ -14,7 +14,7 @@ import authorization from '../utils/authorize.js';
 import moment from 'moment';
 import Order from '../models/order.js';
 import Product from '../models/product.js'
-import { createOrderBodyValidation } from '../utils/validationSchema';
+import { createOrderBodyValidation } from '../utils/validationSchema.js';
 
 var orderInfo;
 var key;
