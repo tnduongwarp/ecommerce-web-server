@@ -58,6 +58,7 @@ route(app);
 cron.schedule('0 0 * * 1',async () => {
     await bidService.refreshBid()
 });
+
 server.listen(3000, ()=> {
     console.log("server is listening on port 3000")
 })

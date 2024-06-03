@@ -29,35 +29,40 @@ export const  bidService = {
         return ret;
     },
     refreshBid: async () => {
-        const date1 = new Date();
-        const date2 = new Date();
-        let day1 = date1.getDay();
-        date1.setDate(date1.getDate()+ countPlusDate(day1));
-        date1.setHours(0);
-        date1.setMinutes(0);
-        date1.setSeconds(0);
-        date1.setMilliseconds(0);        // to date
-        date2.setDate(date1.getDate()+ 7);
-        date2.setHours(23);
-        date2.setMinutes(59);
-        date2.setSeconds(59);
-        // tru di 7 ngay de ve tuan hien tai
-        date1.setDate(fromTime.getDate() - 7);
-        date2.setDate(toTime.getDate() - 7)
-        const bids = await Bid.find({status: 'accepted', isActive: true});
-        let promises = [];
-        for(let bid of bids){
-            bid.isActive = false;
-            promises.push(bid.save())
-        };
-        await Promise.all(promises);
-        promises = [];
-        const newBids = await Bid.find({status: 'accepted',created: {$gte: date1, $lte: date2}});
-        for(let bid of newBids){
-            bid.isActive = true;
-            promises.push(bid.save())
+        try {
+            const date1 = new Date();
+            const date2 = new Date();
+            let day1 = date1.getDay();
+            date1.setDate(date1.getDate()+ countPlusDate(day1));
+            date1.setHours(0);
+            date1.setMinutes(0);
+            date1.setSeconds(0);
+            date1.setMilliseconds(0);        // to date
+            date2.setDate(date1.getDate()+ 7);
+            date2.setHours(23);
+            date2.setMinutes(59);
+            date2.setSeconds(59);
+            // tru di 7 ngay de ve tuan hien tai
+            date1.setDate(date1.getDate() - 7);
+            date2.setDate(date2.getDate() - 7)
+            const bids = await Bid.find({status: 'accepted', isActive: true});
+            let promises = [];
+            for(let bid of bids){
+                bid.isActive = false;
+                promises.push(bid.save())
+            };
+            await Promise.all(promises);
+            promises = [];
+            const newBids = await Bid.find({status: 'accepted',created: {$gte: date1, $lte: date2}});
+            for(let bid of newBids){
+                bid.isActive = true;
+                promises.push(bid.save())
+            }
+            await Promise.all(promises);
+            console.log('ok')
+        } catch (error) {
+            console.log(error)
         }
-        await Promise.all(promises);
     }
 }
 function countPlusDate(day){
