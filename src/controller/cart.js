@@ -48,16 +48,21 @@ const cartCtrl = {
 
     removeItem: async (req, res) => {
         try {
-            let {userId, productIds} = req.body;
-            const cart = await Cart.findOne({owner: userId});
-            if(cart){
-                cart.products = cart._doc.products.filter(item => (!productIds.includes(item.productId.toString())));
-                let data = await cart.save();
-                res.status(200).json({
-                error: false,
-                data: data
-            })
-            }
+                let {userId, productIds} = req.body;
+                const cart = await Cart.findOne({owner: userId});
+                if(cart){
+                    cart.products = cart._doc.products.filter(item => (!productIds.includes(item.productId.toString())));
+                    let data = await cart.save();
+                    res.status(200).json({
+                    error: false,
+                    data: data
+                    })
+                }else{
+                    res.status(200).json({
+                        error: false,
+                        message: 'Cart does not have this item'
+                    })
+                }
         } catch (error) {
             console.log(error)
             res.status(500).json({
