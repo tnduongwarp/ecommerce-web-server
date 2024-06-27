@@ -14,6 +14,7 @@ import authorization from '../utils/authorize.js';
 import moment from 'moment';
 import Order from '../models/order.js';
 import Product from '../models/product.js'
+import CartModel from '../models/cart.js'
 import { createOrderBodyValidation } from '../utils/validationSchema.js';
 
 var orderInfo;
@@ -166,6 +167,7 @@ export default function route(app){
               order.status = 'paid'
               console.log(order);
               const { products } = order;
+              
               for(let item of products){
                   let product = await Product.findById(item.productId);
                   if(product){
@@ -177,7 +179,18 @@ export default function route(app){
               arr.push(Order.create(order));
             }
             let rs = await Promise.all(arr);
-            console.log(rs)
+            console.log(rs);
+            const {owner} = orderInfo[0];
+            let cart = await CartModel.findOne({owner: owner});
+            if(cart){
+              let productIds = [];
+              for(let order of orderInfo){
+                let {products} = order;
+                productIds.push(...products.map(it => it.productId.toString()));
+              }
+              cart.products = cart._doc.products.filter(item => !productIds.includes(item.productId.toString()))
+              await cart.save();
+            }
             res.render('payment_success', {isFailed: false})
           } catch (error) {
             console.log(error);
