@@ -66,7 +66,7 @@ const authCtl = {
             newUser.password = bcrypt.hashSync(req.body.password, salt);
             newUser.email = req.body.email;
             newUser.role = req.body.role;
-            newUser.isSeller = req.body.isSeller;
+            newUser.isSeller = req.body.role == 'seller';
             await newUser.save()
 
             res
