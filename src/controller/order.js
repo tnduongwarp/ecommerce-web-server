@@ -74,7 +74,11 @@ const orderCtl = {
                 for(let key of Object.keys(q)){
                     if(key === 'tab'){
                         if(q['tab'] === 'all') continue;
-                        condition['status'] = q['tab']
+                        switch(q['tab']){
+                            case 'created': condition['status'] = { $in: ['created']}; break;
+                            case 'inProgress': condition['status'] = { $in: ['inTransit']}; break;
+                            case 'completed': condition['status'] = { $in: ['paid', 'needReview', 'completed', 'getted']}; break;
+                        }
                     }
                     else condition[key] = q[key];
                 }
@@ -111,7 +115,13 @@ const orderCtl = {
             let promises = [];
             promises.push(Order.countDocuments({owner: userId}));
             for(let key of Object.keys(OrderStatus)){
-                promises.push(Order.countDocuments({owner: userId, status: OrderStatus[key]}));
+                let condition;
+                switch(OrderStatus[key]){
+                    case 'created': condition = { $in: ['created']}; break;
+                    case 'inProgress': condition = { $in: ['inTransit']}; break;
+                    case 'completed': condition = { $in: ['paid', 'needReview', 'completed', 'getted']}; break;
+                }
+                promises.push(Order.countDocuments({owner: userId, status: condition}));
             }
             await Promise.all(promises).then(
                 values => {
